@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-# Load the saved model and encoders
+# Loading
 try:
     model = pickle.load(open('model.pkl', 'rb'))
     encoders = pickle.load(open('encoders.pkl', 'rb'))
@@ -13,11 +13,10 @@ st.set_page_config(page_title="Income Predictor", layout="centered")
 st.title("💰 Adult Income Predictor")
 st.write("Enter profile details to predict if income exceeds $50K/year.")
 
-# --- SIDEBAR: ALL 13 FEATURES ---
+# SIDEBAR
 st.sidebar.header("User Profile")
 
 def get_user_input():
-    # Numerical Inputs
     age = st.sidebar.slider("Age", 17, 90, 30)
     fnlwgt = st.sidebar.number_input("Final Weight (fnlwgt)", value=200000)
     edu_num = st.sidebar.slider("Education Num (Years)", 1, 16, 9)
@@ -34,7 +33,7 @@ def get_user_input():
     sex = st.sidebar.selectbox("Sex", encoders['sex'].classes_)
     country = st.sidebar.selectbox("Native Country", encoders['native.country'].classes_)
 
-    # Prepare data for prediction (must match the order of training features)
+    # Prepare data for prediction
     data = {
         'age': age,
         'workclass': encoders['workclass'].transform([workclass])[0],
@@ -54,7 +53,7 @@ def get_user_input():
 
 df = get_user_input()
 
-# --- PREDICTION ---
+#PREDICTION
 st.subheader("Prediction Result")
 prediction_proba = model.predict_proba(df)[0][1]
 prediction = model.predict(df)[0]
@@ -67,7 +66,7 @@ if is_high_income:
 else:
     st.warning(f"Prediction: **<=50K Income** (Probability: {round((1-prediction_proba)*100, 2)}%)")
 
-# --- WHAT-IF ANALYSIS ---
+#  WHAT-IF ANALYSIS
 st.divider()
 st.subheader("🧐 What-If Analysis")
 st.info("Adjust values below to see how they impact the probability of earning >50K.")
@@ -78,7 +77,7 @@ with col1:
 with col2:
     wi_gain = st.number_input("Adjust Capital Gain", value=int(df['capital.gain'][0]))
 
-# Update the scenario data
+# Updating
 df_wi = df.copy()
 df_wi['hours.per.week'] = wi_hours
 df_wi['capital.gain'] = wi_gain
@@ -94,4 +93,5 @@ if diff > 0.01:
 elif diff < -0.01:
     st.error(f"That change decreased probability by {round(abs(diff)*100, 2)}%.")
 else:
+
     st.write("Small changes don't significantly impact the current prediction.")
